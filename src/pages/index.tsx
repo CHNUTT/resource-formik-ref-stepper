@@ -1,5 +1,5 @@
-import { Card, CardContent, Typography } from '@material-ui/core';
-import { Field, Form, Formik } from 'formik';
+import { Card, CardContent } from '@material-ui/core';
+import { Field, Form, Formik, FormikConfig, FormikValues } from 'formik';
 import { CheckboxWithLabel, TextField } from 'formik-material-ui';
 import { mixed, number, object } from 'yup';
 
@@ -7,7 +7,7 @@ export default function Home() {
 	return (
 		<Card>
 			<CardContent>
-				<Formik
+				<FormikStepper
 					validationSchema={object({
 						money: mixed().when('millionaire', {
 							is: true,
@@ -45,8 +45,17 @@ export default function Home() {
 							label='Description'
 						/>
 					</Form>
-				</Formik>
+				</FormikStepper>
 			</CardContent>
 		</Card>
 	);
 }
+
+export const FormikStepper = ({
+	children,
+	...props
+}: FormikConfig<FormikValues>) => (
+	<Formik {...props}>
+		<Form autoComplete='off'>{children}</Form>
+	</Formik>
+);
