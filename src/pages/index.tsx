@@ -9,13 +9,6 @@ export default function Home() {
 		<Card>
 			<CardContent>
 				<FormikStepper
-					validationSchema={object({
-						money: mixed().when('millionaire', {
-							is: true,
-							then: number().required().min(1_000_000),
-							otherwise: number().required(),
-						}),
-					})}
 					initialValues={{
 						firstName: '',
 						lastName: '',
@@ -25,7 +18,7 @@ export default function Home() {
 					}}
 					onSubmit={() => {}}
 				>
-					<div>
+					<FormikStep>
 						<Field name='firstName' component={TextField} label='First Name' />
 						<Field name='lastName' component={TextField} label='Last Name' />
 						<Field
@@ -34,37 +27,56 @@ export default function Home() {
 							type='checkbox'
 							label={{ label: 'I am a millionair' }}
 						/>
-					</div>
-					<div>
+					</FormikStep>
+					<FormikStep
+						validationSchema={object({
+							money: mixed().when('millionaire', {
+								is: true,
+								then: number().required().min(1_000_000),
+								otherwise: number().required(),
+							}),
+						})}
+					>
 						<Field
 							name='money'
 							type='number'
 							component={TextField}
 							label='All the money I have'
 						/>
-					</div>
-					<div>
+					</FormikStep>
+					<FormikStep>
 						<Field
 							name='description'
 							component={TextField}
 							label='Description'
 						/>
-					</div>
+					</FormikStep>
 				</FormikStepper>
 			</CardContent>
 		</Card>
 	);
 }
 
+// Note: the interface just for pick the certain properties wanted to be passed down
+export interface FormikStepProps
+	extends Pick<FormikConfig<FormikValues>, 'children' | 'validationSchema'> {}
+
+export const FormikStep = ({ children }: FormikStepProps) => {
+	return <>{children}</>;
+};
+
 export const FormikStepper = ({
 	children,
 	...props
 }: FormikConfig<FormikValues>) => {
-	const childrenArray = React.Children.toArray(children);
+	const childrenArray = React.Children.toArray(
+		children
+	) as React.ReactElement<FormikStepProps>[];
 
 	// Note: only show the children of each step
 	const [step, setStep] = useState(0);
 	const currentChild = childrenArray[step];
+	console.log('children', currentChild);
 
 	// Note: check isLastStep?
 	const isLastStep = () => step === childrenArray.length - 1;
@@ -72,6 +84,7 @@ export const FormikStepper = ({
 	return (
 		<Formik
 			{...props}
+			validationSchema={currentChild.props.validationSchema}
 			// Note: Submit or go to next step
 			onSubmit={async (values, helpers) => {
 				if (step === childrenArray.length - 1) {
